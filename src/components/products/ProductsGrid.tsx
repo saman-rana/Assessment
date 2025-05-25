@@ -1,73 +1,77 @@
 import {useNavigation} from '@react-navigation/native';
-import React from 'react';
-import {View, Text, Image, StyleSheet, TouchableOpacity} from 'react-native';
+import React, {useEffect, useState} from 'react';
+import {
+  View,
+  Text,
+  Image,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+  ActivityIndicator,
+} from 'react-native';
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
+import {productsList} from '../../apis/products-apis';
 import StarRating from '../ratings/Starratings';
-
-const products = [
-  {
-    id: '1',
-    name: 'Red shirt',
-    description: 'Comfortable cotton shirt',
-    price: '$25',
-    image:
-      'https://i.pinimg.com/736x/82/e1/9b/82e19b533c65b871af5db863b23389a3.jpg',
-  },
-  {
-    id: '2',
-    name: 'Sneakers',
-    description: 'Running shoes for all weather',
-    price: '$60',
-    image:
-      'https://i.pinimg.com/736x/d2/5d/f2/d25df245b230952f0ff082a210af07a5.jpg',
-  },
-  {
-    id: '3',
-    name: 'Headphones',
-    description: 'Noise cancelling headphones',
-    price: '$90',
-    image:
-      'https://i.pinimg.com/736x/74/41/a1/7441a1926da737a205e711d6e54e5eab.jpg',
-  },
-  {
-    id: '4',
-    name: 'Coffee Maker',
-    description: 'Brew fresh coffee every morning',
-    price: '$40',
-    image:
-      'https://i.pinimg.com/736x/1a/3a/b0/1a3ab03ad96dda7c7ec93970ba716a2b.jpg',
-  },
-];
 
 export default function ProductGrid() {
   const navigation = useNavigation();
+  const [products, setProducts] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  const onProductListFetch = () => {
+    productsList()
+      .then(response => {
+        setProducts(response);
+        setLoading(false);
+      })
+      .catch(error => {
+        console.error('Product fetch failed:', error);
+        setLoading(false);
+      });
+  };
+
+  useEffect(() => {
+    onProductListFetch();
+  }, []);
+
+  if (loading) {
+    return (
+      <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
+        <ActivityIndicator size="large" color="#4CAF50" />
+      </View>
+    );
+  }
 
   return (
-    <View>
+    <ScrollView>
       <Text style={styles.title}>Products</Text>
       <View style={styles.grid}>
-        {products.map(product => (
+        {products?.map(product => (
           <TouchableOpacity
-            onPress={() => navigation.navigate('ProductDetail', {product})}>
-            <View key={product.id} style={styles.card}>
-              <Image source={{uri: product.image}} style={styles.image} />
-              <Text style={styles.name}>{product.name}</Text>
-              <Text style={styles.price}>{product.price}</Text>
+            key={product.id}
+            onPress={() => navigation.navigate('ProductDetail', {product})}
+            style={styles.card}>
+            <Image source={{uri: product.image}} style={styles.image} />
+            <Text style={styles.name} numberOfLines={1}>
+              {product.title}
+            </Text>
+            <Text style={styles.price}>{product.price}</Text>
 
-              <StarRating rating={3.5} />
-              <Text style={styles.description}>{product.description}</Text>
+            <StarRating rating={3.5} />
+            <Text style={styles.description} numberOfLines={1}>
+              {product.description}
+            </Text>
 
-              <TouchableOpacity style={styles.button}>
-                <Text style={styles.buttonText}>Add to Cart</Text>
-              </TouchableOpacity>
-            </View>
+            <TouchableOpacity style={styles.button}>
+              <Text style={styles.buttonText}>Add to Cart</Text>
+            </TouchableOpacity>
           </TouchableOpacity>
         ))}
       </View>
-    </View>
+    </ScrollView>
   );
 }
 
@@ -100,9 +104,10 @@ const styles = StyleSheet.create({
     borderRadius: wp(2),
   },
   name: {
-    fontSize: wp(4),
+    fontSize: wp(3.5),
     fontWeight: 'bold',
     marginTop: hp(1),
+    textAlign: 'center',
   },
   description: {
     fontSize: wp(3),

@@ -1,1 +1,1 @@
-export const BASE_URL = 'https://kap-backend.onrender.com/user';
+export const BASE_URL = 'https://fakestoreapi.com';
